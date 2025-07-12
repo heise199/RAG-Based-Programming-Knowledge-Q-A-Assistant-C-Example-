@@ -1,0 +1,175 @@
+/* 历史记录容器 - 暗色主题 */
+.history-container {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 1.5rem;
+    background-color: rgba(165, 165, 188, 0.8); /* 半透明深色背景 */
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px); /* 毛玻璃效果 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 卡片样式 */
+.dialogue-card {
+    background: rgba(160, 160, 175, 0.6);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1.2rem;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.dialogue-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    border-left-color: #6a8cff; /* 更亮的蓝色 */
+    background: rgba(60, 60, 70, 0.7);
+}
+
+/* 卡片内容 */
+.card-content {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+/* 文字颜色调整 */
+.question {
+    font-weight: 600;
+    color: #f0f0f0; /* 亮色文字 */
+    margin-bottom: 0.8rem;
+    font-size: 1.05rem;
+}
+
+.answer-preview {
+    color: rgba(200, 200, 210, 0.9); /* 浅灰色 */
+    font-size: 0.95rem;
+    line-height: 1.6;
+    -webkit-line-clamp: 3; /* 限制预览行数 */
+}
+
+.timestamp {
+    color: rgba(180, 180, 190, 0.7); /* 半透明灰色 */
+    font-size: 0.85rem;
+    margin-top: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+/* 操作按钮 */
+.action-buttons {
+    display: flex;
+    gap: 0.6rem;
+}
+
+/* 会话卡片样式 */
+.session-card {
+    background: rgba(180, 180, 197, 0.6);
+    border: 1px solid rgba(252, 253, 252, 0.574);
+    border-radius: 12px;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.session-header {
+    padding: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: linear-gradient(135deg, 
+        rgba(223, 223, 228, 0.8), 
+        rgba(219, 219, 227, 0.8));
+    border-radius: 12px 12px 0 0;
+    transition: all 0.2s ease;
+}
+
+.session-header:hover {
+    background: linear-gradient(135deg, 
+        rgba(70, 70, 80, 0.8), 
+        rgba(60, 60, 70, 0.8));
+}
+
+.toggle-icon {
+    color: #6a8cff; /* 亮蓝色 */
+}
+
+.dialogue-list {
+    padding: 0.8rem;
+    background: rgba(50, 50, 60, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dialogue-item {
+    background: rgba(55, 55, 65, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dialogue-item:hover {
+    background: rgba(65, 65, 75, 0.6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 徽章样式 */
+.count-badge {
+    background: linear-gradient(135deg, #6a8cff, #4a6cdf);
+    color: white;
+}
+
+/* 空状态样式 */
+.empty-state {
+    background: rgba(50, 50, 60, 0.5);
+    color: rgba(200, 200, 210, 0.7);
+}
+
+.empty-icon {
+    color: rgba(150, 150, 160, 0.5);
+}
+
+/* 按钮样式 */
+.btn-outline-primary {
+    border-color: rgba(106, 140, 255, 0.5);
+    color: #6a8cff;
+}
+
+.btn-outline-primary:hover {
+    background: rgba(106, 140, 255, 0.2);
+}
+
+.btn-outline-danger {
+    border-color: rgba(255, 90, 90, 0.5);
+    color: #ff5a5a;
+}
+
+.btn-outline-danger:hover {
+    background: rgba(255, 90, 90, 0.2);
+}
+
+/* 标题样式 */
+.page-title {
+    color: #f0f0f0;
+}
+
+.page-title i {
+    color: #6a8cff;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(30, 30, 40, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 100, 120, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(120, 120, 140, 0.7);
+}

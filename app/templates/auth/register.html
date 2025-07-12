@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 | 您的应用名称</title>
+    <style>
+        /* 共用登录页样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            transition: transform 0.2s;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 32px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 12px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            background: #ffe3e3;
+            color: #dc3545;
+            border: 1px solid #ffc9c9;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #404040;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input:not([type="file"]) {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus:not([type="file"]) {
+            outline: none;
+            border-color: #0066ff;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background: #0052cc;
+            transform: translateY(-1px);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #0066ff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .login-link a:hover {
+            color: #0047b3;
+        }
+
+        /* 文件上传定制样式 */
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-label:hover {
+            background: #f1f3f5;
+            border-color: #0066ff;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+            padding-left: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 16px;
+            border: 2px solid #e0e0e0;
+            position: relative;
+            background: #f8f9fa;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .upload-instruction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            width: 100%;
+            padding: 0 8px;
+        }
+
+        .file-upload-label {
+            height: 160px; /* 增加高度容纳预览 */
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .file-upload-label:hover .upload-instruction {
+            color: #0066ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>创建新账户</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ 'success' if category == 'success' else '' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    placeholder="请输入用户名"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="请输入密码（至少8位）"
+                    required
+                >
+            </div>
+
+                <label>头像上传</label>
+                <div class="file-upload">
+                    <input 
+                        type="file" 
+                        id="avatar" 
+                        name="avatar" 
+                        accept="image/*"
+                        required
+                        onchange="previewAvatar(this)"
+                    >
+                    <label class="file-upload-label" for="avatar">
+                        <div class="avatar-preview">
+                            <div class="upload-instruction">点击上传或拖放图片</div>
+                            <img id="avatarPreview" alt="头像预览">
+                        </div>
+                    </label>
+
+            </div>
+            <button type="submit">立即注册</button>
+        </form>
+
+        <div class="login-link">
+            <p>已有账户？ <a href="{{ url_for('auth.login') }}">立即登录</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 文件拖放功能
+        const dropArea = document.querySelector('.file-upload-label');
+
+        // 防止默认拖放行为
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 高亮拖放区域
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropArea.style.borderColor = '#0066ff';
+            dropArea.style.background = '#f1f3f5';
+        }
+
+        function unhighlight(e) {
+            dropArea.style.borderColor = '#e0e0e0';
+            dropArea.style.background = '#f8f9fa';
+        }
+
+        // 处理文件选择
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('avatar').files = files;
+            document.getElementById('fileName').textContent = files[0].name;
+        }
+        function previewAvatar(input) {
+            const preview = document.getElementById('avatarPreview');
+            const instruction = document.querySelector('.upload-instruction');
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    instruction.style.display = 'none';
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                instruction.style.display = 'block';
+                preview.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+{% extends "nav.html" %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能文档处理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+
+
+    <!-- 主要内容 -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="text-center mb-4" style="color: white;">上传文档</h2>
+                <p class="text-center text-muted mb-4" style="color: white;">支持PDF和DOCX格式，上传后系统将自动处理文档内容</p>
+    
+                <!-- 上传表单 -->
+                <form id="uploadForm" action="{{ url_for('api.upload') }}" method="post" enctype="multipart/form-data">
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <i class="bi bi-cloud-arrow-up fs-1" style="color: white;"></i>
+                        <p class="mt-3" style="color: white;">点击或拖拽文件到此处</p>
+                        <p class="text-muted" style="color: white;">支持PDF、DOCX格式</p>
+                    </div>
+                    <input type="file" id="fileInput" name="file" accept=".pdf,.docx" style="display: none;"
+                        onchange="handleFileSelect(this)">
+                    <div id="fileInfo" class="file-info" style="color: white;"></div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>上传并处理</button>
+                    </div>
+                </form>
+    
+                <!-- 处理结果区域 -->
+                <div id="processingResult" class="mt-5" style="display: none;">
+                    <h4 class="mb-3" style="color: white;">处理结果</h4>
+    
+                    <!-- 动态消息容器 -->
+                    <div class="alert alert-success" role="alert" id="successAlert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill me-2" style="color: white;"></i>
+                            <span id="successMessage" style="color: white;"></span>
+                        </div>
+                    </div>
+    
+                    <!-- 新增处理明细 -->
+                    <div class="mt-3 bg-light p-3 rounded" style="color: white;">
+                        <p class="mb-1">
+                            <i class="bi bi-file-text me-2" style="color: white;"></i>
+                            文档分块数: <span id="chunkCount" style="color: white;">0</span>
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-clock-history me-2" style="color: white;"></i>
+                            处理耗时: <span id="processingTime" style="color: white;">0</span>秒
+                        </p>
+                    </div>
+    
+                    <!-- 操作按钮组 -->
+                    <div class="mt-4 d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise me-2" style="color: white;"></i>继续上传
+                        </button>
+                        <a href="{{ url_for('api.chat') }}" class="btn btn-success" id="startChatBtn" disabled>
+                            <i class="bi bi-chat-dots me-2" style="color: white;"></i>开始对话
+                        </a>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('api.chat') }}" class="btn btn-success" id="startChatBtnBottom" disabled>
+                        <i class="bi bi-chat-dots me-2" style="color: white;"></i>开始对话
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                const fileInfo = document.getElementById('fileInfo');
+                fileInfo.innerHTML = `
+                    <strong>已选择文件:</strong> ${file.name}<br>
+                    <strong>文件类型:</strong> ${file.type}<br>
+                    <strong>文件大小:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB
+                `;
+                document.getElementById('uploadBtn').disabled = false;
+            }
+        }
+
+        // 拖放功能
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#0d6efd';
+            uploadArea.style.backgroundColor = '#f8f9fa';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccc';
+            uploadArea.style.backgroundColor = '';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            uploadArea.style.backgroundColor = '';
+
+            const fileInput = document.getElementById('fileInput');
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect(fileInput);
+        });
+
+        // 表单提交处理
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            // 禁用按钮并显示加载状态
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 处理中...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        // 添加标识让后端识别 AJAX 请求
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('processingResult').style.display = 'block';
+                    document.getElementById('successMessage').textContent = data.message;
+                    document.getElementById('chunkCount').textContent = data.data.chunks;
+                    document.getElementById('processingTime').textContent = data.data.duration;
+                    form.reset();
+                    document.getElementById('fileInfo').innerHTML = '';
+                    // 启用开始对话按钮
+                    document.getElementById('startChatBtn').disabled = false;
+                    document.getElementById('startChatBtnBottom').disabled = false;
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('上传过程中出错');
+            } finally {
+                // 恢复按钮状态
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '上传并处理';
+            }
+        });
+    </script>
+</body>
+{% endblock %}

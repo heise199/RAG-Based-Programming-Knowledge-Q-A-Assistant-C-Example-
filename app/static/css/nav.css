@@ -1,0 +1,268 @@
+:root {
+    --gradient-start: #6e45e2;
+    --gradient-end: #88d3ce;
+    --neon-pink: #ff2d75;
+    --neon-blue: #00f2fe;
+    --cubic-bezier: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --particle-base: rgba(255,255,255,0.8);
+}
+
+/* 动态星空背景 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(ellipse at bottom, #176ed1 0%, #090A0F 100%);
+    z-index: -2;
+}
+
+/* 粒子动画 */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.particles::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    box-shadow: 
+        60vw 90vh var(--particle-base),
+        10vw 10vh var(--particle-base),
+        85vw 15vh var(--particle-base),
+        90vw 60vh var(--particle-base),
+        15vw 80vh var(--particle-base);
+    animation: float 15s linear infinite;
+}
+
+.particles::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    box-shadow: 
+        25vw 35vh var(--particle-base),
+        65vw 45vh var(--particle-base),
+        75vw 25vh var(--particle-base),
+        30vw 65vh var(--particle-base),
+        45vw 15vh var(--particle-base);
+    animation: floatReverse 20s linear infinite;
+}
+
+@keyframes float {
+    100% {
+        transform: translateY(-100vh);
+    }
+}
+
+@keyframes floatReverse {
+    100% {
+        transform: translateY(-150vh) translateX(50px);
+    }
+}
+
+/* 霓虹渐变导航栏 */
+.navbar {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    box-shadow: 
+        0 0 10px rgba(110, 69, 226, 0.5),
+        0 0 20px rgba(136, 211, 206, 0.3);
+    transition: all 0.5s var(--cubic-bezier);
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.navbar-brand {
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+    position: relative;
+}
+
+.navbar-brand::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, white, transparent);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover::after {
+    transform: scaleX(1);
+}
+
+/* 3D悬浮上传区域 */
+.upload-area {
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    margin: 30px 0;
+    cursor: pointer;
+    background: rgba(30, 30, 50, 0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.4s var(--cubic-bezier);
+    box-shadow: 
+        0 5px 15px rgba(0,0,0,0.3),
+        inset 0 0 10px rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-area::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.1) 50%,
+        rgba(255,255,255,0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) rotate(30deg); }
+    100% { transform: translateX(100%) rotate(30deg); }
+}
+
+.upload-area:hover {
+    transform: translateY(-5px) perspective(500px) rotateX(5deg);
+    box-shadow: 
+        0 15px 30px rgba(0,0,0,0.4),
+        inset 0 0 20px rgba(255,255,255,0.2);
+    border-color: var(--neon-pink);
+}
+
+.upload-area.dragover {
+    transform: scale(1.05) perspective(500px) rotateX(10deg);
+    background: rgba(110, 69, 226, 0.2);
+    border-color: var(--neon-blue);
+    box-shadow: 
+        0 0 20px rgba(0, 242, 254, 0.5),
+        inset 0 0 15px rgba(0, 242, 254, 0.2);
+}
+
+/* 霓虹按钮 */
+.btn-magic {
+    background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue));
+    border: none;
+    color: white;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+    box-shadow: 
+        0 0 10px rgba(255, 45, 117, 0.5),
+        0 0 20px rgba(0, 242, 254, 0.3);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s var(--cubic-bezier);
+    border-radius: 50px;
+    padding: 12px 25px;
+}
+
+.btn-magic:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 0 15px rgba(255, 45, 117, 0.7),
+        0 0 25px rgba(0, 242, 254, 0.5);
+    text-shadow: 0 0 10px white;
+}
+
+.btn-magic::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.4),
+        transparent
+    );
+    transition: all 0.5s ease;
+}
+
+.btn-magic:hover::before {
+    left: 100%;
+}
+
+/* 全息投影式消息提示 */
+.alert-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 250px;
+    background: rgba(30, 30, 50, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    box-shadow: 
+        0 0 20px rgba(110, 69, 226, 0.5),
+        inset 0 0 10px rgba(255,255,255,0.1);
+    color: white;
+    padding: 15px;
+    opacity: 0;
+    transform: translateX(120%) rotateY(90deg);
+    transform-origin: right center;
+    transition: all 0.6s var(--cubic-bezier);
+    z-index: 9999;
+}
+
+.alert-toast.show {
+    opacity: 1;
+    transform: translateX(0) rotateY(0);
+}
+
+.alert-toast::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue));
+    animation: progress 3s linear forwards;
+}
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: 25px;
+        margin: 15px 0;
+    }
+    
+    .btn-magic {
+        padding: 10px 20px;
+    }
+    
+    .alert-toast {
+        min-width: 200px;
+        right: 10px;
+    }
+}

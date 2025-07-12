@@ -1,0 +1,117 @@
+/* 整体样式调整 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #f9f6f6; /* 改为浅色文字 */
+    background-color: #1a1a1a; /* 暗色背景 */
+}
+
+/* 上传区域样式 */
+.upload-area {
+    border: 2px dashed #23d0e7; /* 改为深灰色边框 */
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    margin: 30px 0;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(238, 236, 236, 0.3);
+    background-color: #2a2a2a; /* 暗色背景 */
+}
+
+.upload-area:hover {
+    border-color: #4d8bf0; /* 亮蓝色边框 */
+    background-color: #333; /* 稍亮的背景 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* 文件信息样式 */
+.file-info {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #f0f0eb; /* 浅灰色文字 */
+}
+
+/* 标题样式 */
+h2 {
+    color: #4d8bf0; /* 亮蓝色标题 */
+    margin-bottom: 30px;
+}
+
+/* 段落样式 */
+p {
+    color: #f4ebeb; /* 浅灰色文字 */
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 5px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background-color: #4d8bf0;
+    border-color: #4d8bf0;
+}
+
+.btn-primary:hover {
+    background-color: #3a7bd5;
+    border-color: #3a7bd5;
+}
+
+.btn-outline-secondary {
+    border-color: #666;
+    color: #aaa;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #333;
+    border-color: #888;
+    color: #ddd;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+/* 处理结果区域样式 */
+#processingResult {
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background-color: #2a2a2a;
+}
+
+/* 成功提示样式 */
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #d4edda;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+/* 处理明细样式 */
+.bg-light {
+    background-color: #333 !important; /* 暗色背景 */
+    border-radius: 5px;
+    color: #ddd;
+}
+
+/* 操作按钮组样式 */
+.d-flex {
+    justify-content: space-between;
+    margin-top: 20px;
+}
+.text-muted {
+    color: #e7e0e0;
+}

@@ -1,0 +1,258 @@
+{% extends "nav.html" %}
+
+{% block content %}
+<head>
+    <title>会话历史</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<style>
+
+</style>
+
+<div class="history-container">
+    <h2 class="page-title">
+        <i class="bi bi-clock-history"></i>
+        会话历史
+    </h2>
+
+    <div id="session-list">
+        {% for session in sessions %}
+        <div class="session-card" data-id="{{ session.id }}">
+            <div class="session-header">
+                <div class="header-left">
+                    <i class="bi bi-chevron-right toggle-icon"></i>
+                    <div class="session-meta">
+                        {% if session.dialogues and session.dialogues|length > 0 %}
+                                <span class="session-id">问题：{{ session.dialogues[0].question }}</span>
+                            {% else %}
+                                <span class="no-dialogue">当前无对话</span>
+                            {% endif %}
+                        <span class="session-time">
+                            {{ session.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </span>
+                        <span class="badge count-badge">{{ session.dialogues|length }} 条对话</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-sm btn-danger delete-session" 
+                            title="删除整个会话">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="dialogue-list collapse">
+                {% for dialogue in session.dialogues %}
+                <div class="dialogue-item" data-id="{{ dialogue.id }}">
+                    <div class="content-left">
+                        <div class="question">{{ dialogue.question }}</div>
+                        <div class="answer-preview">{{ dialogue.answer|striptags|truncate(50) }}</div>
+                        <div class="timestamp">
+                            {{ dialogue.timestamp.strftime('%H:%M') }}
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-outline-danger chakan" id = 'eye-btn'  data-session-id="{{ session.id }}"  data-user="{{ session.user_id }}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-dialogue">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-chat-square-text"></i>
+            </div>
+            <p class="empty-text">暂无会话记录</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.chakan').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const chatId = this.dataset.sessionId;
+            const userId = this.dataset.user;
+    
+            if (!chatId || !userId) return;
+    
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // 如启用CSRF保护需添加以下头
+                    'X-CSRFToken': getCSRFToken() 
+                },
+                body: JSON.stringify({ chatId, userId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // 解析JSON响应
+                }
+                throw new Error('请求失败');
+            })
+            .then(data => {
+                if (data.redirect) {
+                    // 跳转至携带session_id的GET请求
+                    window.location.href = data.redirect;
+                }
+            })
+            .catch(error => {
+                console.error('加载会话失败:', error);
+                alert('无法加载会话，请重试');
+            });
+        });
+    });
+    // 会话展开/收起
+    document.querySelectorAll('.session-header').forEach(header => {
+        header.addEventListener('click', (e) => {
+            const card = e.target.closest('.session-card');
+            const isActive = card.classList.contains('active');
+            const content = card.querySelector('.dialogue-list');
+            
+            // 切换状态
+            card.classList.toggle('active');
+            new bootstrap.Collapse(content, { toggle: true });
+            
+            // 阻止删除按钮触发展开
+            if (!e.target.closest('.delete-session')) {
+                // 动态加载内容（如果需要）
+                if (!isActive && content.children.length === 0) {
+                    loadSessionDialogues(card.dataset.id, content);
+                }
+            }
+        });
+    });
+
+// 删除会话
+document.querySelectorAll('.delete-session').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const card = e.target.closest('.session-card');
+        
+        if (confirm('确定删除整个会话及其所有对话吗？')) {
+            try {
+                const response = await fetch(`/api/sessions/${card.dataset.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken() // 添加CSRF保护
+                    }
+                });
+
+                if (response.ok) {
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                    checkEmptyState();
+                } else {
+                    const error = await response.json();
+                    alert(`删除失败: ${error.message || '未知错误'}`);
+                }
+            } catch (err) {
+                console.error('删除会话出错:', err);
+
+            }
+        }
+    });
+});
+
+// 删除单条对话
+document.querySelectorAll('.delete-dialogue').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const item = e.target.closest('.dialogue-item');
+        
+        if (confirm('确定删除这条对话记录吗？')) {
+            try {
+                const response = await fetch(`/api/dialogues/${item.dataset.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken() // 添加CSRF保护
+                    }
+                });
+
+                if (response.ok) {
+                    item.remove();
+                    updateSessionCount(item.closest('.session-card'));
+                    checkEmptyState();
+                } else {
+                    const error = await response.json();
+                    alert(`删除失败: ${error.message || '未知错误'}`);
+                }
+            } catch (err) {
+                console.error('删除对话出错:', err);
+            }
+        }
+    });
+});
+
+// 获取CSRF令牌的函数
+function getCSRFToken() {
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (!metaTag) {
+        console.error('CSRF token meta tag not found');
+        return ''; // 返回空字符串或根据你的需求处理
+    }
+    return metaTag.content;
+}
+    // 辅助函数
+    function updateSessionCount(card) {
+        const count = card.querySelectorAll('.dialogue-item').length;
+        card.querySelector('.count-badge').textContent = `${count} 条对话`;
+    }
+
+    function checkEmptyState() {
+        if (document.querySelectorAll('.session-card').length === 0) {
+            document.getElementById('session-list').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-chat-square-text"></i>
+                    </div>
+                    <p class="empty-text">暂无会话记录</p>
+                </div>
+            `;
+        }
+    }
+
+    // 动态加载对话（示例）
+    async function loadSessionDialogues(sessionId, container) {
+        try {
+            const response = await fetch(`/api/sessions/${sessionId}/dialogues`);
+            const data = await response.json();
+            
+            // 渲染对话项
+            container.innerHTML = data.map(d => `
+                <div class="dialogue-item" data-id="${d.id}">
+                    <div class="content-left">
+                        <div class="question">user:${d.question}</div>
+                        <div class="answer-preview">agent:${d.answer}</div>
+                        <div class="timestamp">
+                            ${new Date(d.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="${url_for('api.chat')}?dialogue_id=${d.id}" 
+                           class="btn btn-sm btn-outline-primary"
+                           title="查看详情">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger delete-dialogue">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('加载失败:', error);
+        }
+    }
+</script>
+{% endblock %}

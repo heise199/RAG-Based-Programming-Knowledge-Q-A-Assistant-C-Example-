@@ -1,0 +1,278 @@
+{% extends "nav.html" %}
+
+{% block content %}
+<head>
+    <title>智能助手</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <style>
+
+    </style>
+</head>
+<body>
+    <div class="session-control">
+        <button id="new-session-btn" class="btn btn-primary">
+            <i class="fas fa-plus"></i> 新建对话
+        </button>
+        
+        <script>
+        // 初始化按钮状态
+        document.addEventListener('DOMContentLoaded', () => {
+            const dialoguesCount = {{ current_session.dialogues|length | tojson }};
+            const newSessionBtn = document.getElementById('new-session-btn');
+            
+            // 当对话数为0时禁用按钮
+            newSessionBtn.disabled = dialoguesCount === 0;
+            
+            // 添加状态提示
+            newSessionBtn.title = dialoguesCount === 0 
+                ? "请先完成当前会话的首次对话" 
+                : "创建新会话";
+        });
+        
+        // 在对话提交成功后更新状态
+        function updateButtonState() {
+            const chatContainer = document.getElementById('chat-container');
+            const newSessionBtn = document.getElementById('new-session-btn');
+            
+            // 根据现有对话数量判断
+            const hasDialogues = chatContainer.querySelectorAll('.message').length > 0;
+            newSessionBtn.disabled = !hasDialogues;
+            newSessionBtn.title = hasDialogues 
+                ? "创建新会话" 
+                : "请先完成当前会话的首次对话";
+        }
+        </script>
+        <!-- 会话信息显示优化 -->
+        <div id="session-info" class="session-info">
+            <span id="session-info-text">
+                <!-- 动态显示会话信息 -->
+            </span>
+        </div>
+
+        <!-- 空状态提示 -->
+        {% if not dialogues %}
+        <div class="empty-chat">
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="chat-container" id="chat-container">
+        {% for dialogue in dialogues %}
+        <div class="message user-message">
+            {% if current_user.is_authenticated and current_user.avatar %}
+                <img src="{{ url_for('static', filename=current_user.avatar) }}" 
+                     class="avatar" 
+                     alt="用户头像">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/user_avatar.png') }}" 
+                     class="avatar" 
+                     alt="默认头像">
+            {% endif %}
+            <div class="message-content">
+                <div class="markdown-content">{{ dialogue.question }}</div>
+                <span class="timestamp">{{ dialogue.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+
+        <div class="message agent-message">
+            <img src="{{ url_for('static', filename='img/agent.png') }}" 
+                 class="avatar" 
+                 alt="AI助手">
+            <div class="message-content">
+                <div class="markdown-content">{{ dialogue.answer }}</div>
+                <span class="timestamp">{{ dialogue.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form id="question-form" class="input-container">
+        <input type="text" 
+               name="question" 
+               id="question-input" 
+               placeholder="输入您的问题..." 
+               autocomplete="off"
+               required>
+        <button type="submit" id="submit-btn">发送</button>
+    </form>
+
+    <script>
+    // 初始化Markdown渲染
+    function renderMarkdown() {
+        document.querySelectorAll('.markdown-content').forEach(el => {
+            const raw = el.textContent;
+            el.innerHTML = DOMPurify.sanitize(marked.parse(raw));
+        });
+    }
+    renderMarkdown();
+
+    // 创建消息元素
+    function createMessage(content, isUser) {
+        const timestamp = new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        return `
+            <div class="message ${isUser ? 'user-message' : 'agent-message'}">
+                <img src="${isUser ? 
+                    '{{ url_for("static", filename=current_user.avatar if current_user.is_authenticated and current_user.avatar else "images/user_avatar.png") }}' : 
+                    '{{ url_for("static", filename="img/agent.png") }}'}" 
+                    class="avatar" 
+                    alt="${isUser ? '用户头像' : 'AI助手'}">
+                <div class="message-content">
+                    <div class="markdown-content">${DOMPurify.sanitize(marked.parse(content))}</div>
+                    <span class="timestamp">${timestamp}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // 核心滚动方法
+    function scrollToBottom(immediate = false) {
+        const chatContainer = document.getElementById('chat-container');
+        const options = {
+            top: chatContainer.scrollHeight,
+            behavior: immediate ? 'auto' : 'smooth'
+        };
+        chatContainer.scrollTo(options);
+    }
+
+    // 修改后的智能滚动方法
+    function smartScroll() {
+        const chatContainer = document.getElementById('chat-container');
+        const { scrollTop, scrollHeight, clientHeight } = chatContainer;
+        const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+        
+        // 当距离底部小于50px或新消息高度超过可视区域时强制滚动
+        if (distanceFromBottom < 50 || distanceFromBottom < clientHeight) {
+            scrollToBottom();
+        }
+    }
+
+
+    // 新建会话逻辑
+    document.getElementById('new-session-btn').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/new_session', {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            });
+            
+            if (response.ok) {
+                window.location.reload();  // 刷新页面加载新会话
+            }
+    
+            const data = await response.json();
+            
+            // 更新会话信息
+            currentSessionId = data.session_id;
+            document.getElementById('current-session-id').textContent = data.session_id;
+            document.getElementById('session-info').querySelector('span:last-child').textContent = 
+                new Date(data.created_at).toLocaleString('zh-CN');
+            
+            // 清空聊天记录
+            document.getElementById('chat-container').innerHTML = '';
+            
+        } catch (error) {
+            console.error('会话创建失败:', error);
+            alert('新建会话失败，请刷新页面重试');
+        }
+    });
+
+    // 修改后的表单提交逻辑
+    document.getElementById('question-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('question-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const question = input.value.trim();
+        scrollToBottom(true);
+
+        if (!question) return;
+
+        // 禁用输入和按钮
+        input.disabled = true;
+        submitBtn.disabled = true;
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.textContent = 'AI正在思考中...';
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.appendChild(loadingIndicator);
+
+        try {
+            // 添加用户消息
+            chatContainer.insertAdjacentHTML('beforeend', createMessage(question, true));
+
+            // 发送请求
+            const response = await fetch('{{ url_for("api.ask") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    question,
+                    session_id: currentSessionId  // 添加会话ID参数
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            // 移除加载提示
+            chatContainer.removeChild(loadingIndicator);
+
+            // 添加AI响应
+            chatContainer.insertAdjacentHTML('beforeend', createMessage(data.answer, false));
+
+            // 自动滚动
+            smartScroll();
+
+        } catch (error) {
+            console.error('请求失败:', error);
+            // 移除加载提示
+            chatContainer.removeChild(loadingIndicator);
+            // 显示错误消息
+            const errorHtml = `
+                <div class="message error-message">
+                    <div class="message-content">
+                        <p style="color: #dc3545;">⚠️ 请求失败: ${DOMPurify.sanitize(error.message)}</p>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', errorHtml);
+        } finally {
+            // 恢复输入
+            input.disabled = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = '发送';
+            input.value = '';
+            input.focus();
+        }
+    });
+
+    // 输入框高度自适应
+    const input = document.getElementById('question-input');
+    input.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // 回车发送（Shift+Enter换行）
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('question-form').requestSubmit();
+        }
+    });
+    </script>
+</body>
+{% endblock %}    

@@ -1,0 +1,224 @@
+{% extends "nav.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- 标题部分 -->
+    <div class="d-flex align-items-center mb-4">
+        <h1 class="h3 mb-0 text-primary">
+            <i class="bi bi-person-circle me-2"></i>个人中心
+        </h1>
+        {% if user.avatar %}
+        <img src="{{ url_for('static', filename=user.avatar) }}" 
+             class="rounded-circle ms-3" 
+             alt="用户头像"
+             style="width: 45px; height: 45px; object-fit: cover;">
+        {% endif %}
+    </div>
+
+    <!-- 卡片式表单容器 -->
+    <div class="card border-0 shadow-lg">
+        <div class="card-body p-5">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <!-- 用户名输入 -->
+                <div class="mb-4">
+                    <label for="username" class="form-label fw-bold text-secondary">用户名</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control form-control-lg rounded-end" 
+                               id="username" 
+                               name="username"
+                               value="{{ user.username }}" 
+                               required>
+                        <div class="invalid-feedback">
+                            请输入有效的用户名
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 密码修改区域 -->
+                <div class="mb-4">
+                    <h5 class="text-muted mb-3">密码修改</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="new_password" class="form-label">新密码</label>
+                            <div class="input-group">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="new_password"
+                                       name="new_password"
+                                       placeholder="留空则不修改">
+                                <button type="button" 
+                                        class="btn btn-outline-secondary password-toggle"
+                                        data-target="new_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">至少8个字符</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label">确认密码</label>
+                            <div class="input-group">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="confirm_password"
+                                       name="confirm_password">
+                                <button type="button" 
+                                        class="btn btn-outline-secondary password-toggle"
+                                        data-target="confirm_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 头像上传 -->
+                <div class="mb-4">
+                    <h5 class="text-muted mb-3">头像设置</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="me-4">
+                            <div class="avatar-upload">
+                                <label for="avatar" class="avatar-edit">
+                                    <input type="file" 
+                                           id="avatar" 
+                                           name="avatar"
+                                           accept="image/*"
+                                           class="d-none">
+                                    <i class="bi bi-camera-fill"></i>
+                                </label>
+                                <div class="avatar-preview">
+                                    {% if user.avatar %}
+                                    <img src="{{ url_for('static', filename=user.avatar) }}" 
+                                         alt="当前头像">
+                                    {% else %}
+                                    <div class="no-avatar">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-muted">
+                            <small>支持 JPG/PNG 格式<br>建议尺寸 200x200 像素</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                    <button type="submit" 
+                            class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-save2 me-2"></i>保存更改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 自定义样式 */
+.card {
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.avatar-upload {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    overflow: hidden;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-edit {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    background: #fff;
+    border-radius: 50%;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 1;
+}
+
+.no-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 3rem;
+    color: #6c757d;
+}
+
+.password-toggle {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+</style>
+
+<script>
+// 密码可见切换
+document.querySelectorAll('.password-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target)
+        const type = target.type === 'password' ? 'text' : 'password'
+        target.type = type
+        btn.querySelector('i').classList.toggle('bi-eye-slash')
+    })
+})
+
+// 实时头像预览
+document.getElementById('avatar').addEventListener('change', function(e) {
+    const reader = new FileReader()
+    reader.onload = function(event) {
+        const preview = document.querySelector('.avatar-preview')
+        preview.innerHTML = `<img src="${event.target.result}" alt="头像预览">`
+    }
+    reader.readAsDataURL(e.target.files[0])
+})
+
+// 表单验证
+(() => {
+  'use strict'
+  const forms = document.querySelectorAll('.needs-validation')
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      form.classList.add('was-validated')
+    }, false)
+  })
+})()
+</script>
+{% endblock %}

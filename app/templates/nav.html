@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}程序设计课程智能问答系统{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+    <style>
+        .navbar-brand.mx-auto {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <!-- 固定导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            {% if current_user.is_authenticated and current_user.username == 'admin' %}
+                <a class="navbar-brand" href="{{ url_for('api.index') }}">首页</a>
+            {% endif %}
+    
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'api.chat' %}active{% endif %}" href="{{ url_for('api.chat') }}">对话</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'api.get_sessions' %}active{% endif %}" 
+                                href="{{ url_for('api.get_sessions') }}">
+                                历史记录
+                                </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://stackoverflow.org.cn/">Stack Overflow中文</a>
+                    </li>               
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}" href="{{ url_for('auth.profile') }}">个人中心</a>
+                    </li>
+                </ul>
+                <div class="navbar-brand mx-auto text-center px-4">
+                    <span class="h4 mb-0">程序设计课程智能问答系统</span>
+                </div>
+                <div class="ms-auto">
+                    <button class="btn btn-outline-light theme-toggle">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                </div>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">退出</a>
+                    </li>
+                </ul>
+
+            </div>
+            </div>
+        </div>
+    </nav>
+    <div class="particles"></div>
+
+    <div class="container my-4">
+        <!-- 优化后的消息提示 -->
+        <div class="alert-toast alert alert-success" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span class="toast-message"></span>
+        </div>
+
+
+    <!-- 主要内容区域 -->
+    <div class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}
+    <!-- 可选：滚动渐变效果 -->
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.style.backgroundColor = 'rgba(13, 110, 253, 0.98)';
+                navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+            } else {
+                navbar.style.backgroundColor = '';
+                navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            }
+        });
+         // 主题切换功能
+         document.querySelector('.theme-toggle').addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark'
+            const newTheme = isDark ? 'light' : 'dark'
+            document.documentElement.setAttribute('data-bs-theme', newTheme)
+            localStorage.setItem('theme', newTheme)
+        })
+
+        // 智能拖放上传功能
+        const uploadArea = document.querySelector('.upload-area')
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault()
+            uploadArea.classList.add('dragover')
+        })
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover')
+        })
+
+        // 动态消息提示
+        function showToast(message, type = 'success') {
+            const toast = document.querySelector('.alert-toast')
+            toast.querySelector('.toast-message').textContent = message
+            toast.classList.remove('alert-success', 'alert-danger')
+            toast.classList.add(`alert-${type}`)
+            toast.classList.add('show')
+            setTimeout(() => toast.classList.remove('show'), 3000)
+        }
+
+        // 背景粒子效果（示例实现）
+        function initParticles() {
+            // 此处可接入第三方粒子库或自定义实现
+            console.log('粒子效果初始化...')
+        }
+        initParticles()
+
+        // 智能输入建议
+        const messageInput = document.querySelector('#message')
+        messageInput.addEventListener('input', async (e) => {
+            // 此处可接入AI自动补全接口
+            console.log('智能输入建议:', e.target.value)
+        })
+    </script>
+    
+    {% endblock %}
+</body>
+</html>

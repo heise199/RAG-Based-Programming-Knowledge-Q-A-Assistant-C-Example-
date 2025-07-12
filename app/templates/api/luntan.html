@@ -1,0 +1,203 @@
+<!-- templates/index.html -->
+{% extends "nav.html" %}
+
+{% block content %}
+!DOCTYPE html>
+<html>
+<head>
+    <title>{{ post.author.username }}的动态</title>
+</head>
+<body>
+    <div class="post-detail">
+        <!-- 帖子头部 -->
+        <div class="post-header">
+            <img src="{{ post.author.avatar }}" class="avatar">
+            <div class="post-info">
+                <h1>{{ post.author.username }}</h1>
+                <small>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+            </div>
+        </div>
+
+        <!-- 帖子内容 -->
+        <div class="content">
+            {{ post.content }}
+            {% if post.image %}
+            <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="post-image">
+            {% endif %}
+        </div>
+
+        <!-- 互动按钮 -->
+        <div class="post-actions">
+            <form action="{{ url_for('like_post', post_id=post.id) }}" method="POST">
+                <button type="submit" class="like-btn">
+                    ❤️ {{ post.likes|length }}
+                </button>
+            </form>
+        </div>
+
+        <!-- 评论区 -->
+        <div class="comments-section">
+            <h3>评论（{{ post.comments|length }}）</h3>
+            
+            <!-- 评论列表 -->
+            {% for comment in post.comments %}
+            <div class="comment">
+                <img src="{{ comment.author.avatar }}" class="avatar">
+                <div class="comment-body">
+                    <strong>{{ comment.author.username }}</strong>
+                    <p>{{ comment.content }}</p>
+                    <small>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- 评论表单 -->
+            <form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST">
+                <textarea name="content" placeholder="写下你的评论..." required></textarea>
+                <button type="submit">发表评论</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 返回链接 -->
+    <a href="{{ url_for('forum') }}">返回首页</a>
+</body>
+</html>
+<!-- 发帖表单 -->
+<div class="post-form-container">
+    <form id="postForm" enctype="multipart/form-data">
+        <textarea name="content" placeholder="发什么动态？" required></textarea>
+        <input type="file" name="image" accept="image/*">
+        <button type="submit">发布动态</button>
+    </form>
+</div>
+
+<!-- 帖子列表容器 -->
+<div id="postsContainer">
+    {% for post in posts %}
+    <div class="post" data-post-id="{{ post.id }}">
+        <!-- 帖子内容 -->
+        <div class="post-content">
+            <img src="{{ post.author.avatar }}" class="avatar">
+            <div class="post-body">
+                <h3>{{ post.author.username }}</h3>
+                <p>{{ post.content }}</p>
+                {% if post.image %}
+                <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="post-image">
+                {% endif %}
+                <div class="post-meta">
+                    <span class="like-count">{{ post.likes|length }}</span>
+                    <button class="like-btn" data-post-id="{{ post.id }}">
+                        {% if current_user.has_liked_post(post) %}❤️{% else %}🤍{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 评论区 -->
+        <div class="comments-section">
+            {% for comment in post.comments %}
+            <div class="comment" data-comment-id="{{ comment.id }}">
+                <img src="{{ comment.author.avatar }}" class="avatar">
+                <div class="comment-body">
+                    <h4>{{ comment.author.username }}</h4>
+                    <p>{{ comment.content }}</p>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- 评论表单 -->
+            <form class="comment-form" data-post-id="{{ post.id }}">
+                <textarea name="content" placeholder="写下你的评论..." required></textarea>
+                <button type="submit">发送</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+<div class="pagination">
+    {{ pagination.links }}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 处理发帖
+        document.getElementById('postForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/api/create_post', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const newPost = await response.json();
+                    appendNewPost(newPost);
+                    this.reset();
+                }
+            } catch (error) {
+                console.error('发帖失败:', error);
+            }
+        });
+    
+        // 处理点赞
+        document.addEventListener('click', async function(e) {
+            if (e.target.classList.contains('like-btn')) {
+                const postId = e.target.dataset.postId;
+                const likeButton = e.target;
+                
+                try {
+                    const response = await fetch(`/api/like/${postId}`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+                    
+                    const data = await response.json();
+                    updateLikeStatus(likeButton, data);
+                } catch (error) {
+                    console.error('点赞失败:', error);
+                }
+            }
+        });
+    
+        // 处理评论
+        document.addEventListener('submit', async function(e) {
+            if (e.target.classList.contains('comment-form')) {
+                e.preventDefault();
+                const postId = e.target.dataset.postId;
+                const formData = new FormData(e.target);
+                
+                try {
+                    const response = await fetch(`/api/comment/${postId}`, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (response.ok) {
+                        loadComments(postId);
+                    }
+                } catch (error) {
+                    console.error('评论失败:', error);
+                }
+            }
+        });
+    });
+    
+    // 更新点赞状态
+    function updateLikeStatus(button, data) {
+        button.textContent = data.liked ? '❤️' : '🤍';
+        button.dataset.count = data.count;
+    }
+    
+    // 追加新帖子
+    function appendNewPost(post) {
+        const container = document.getElementById('postsContainer');
+        const newPostElement = createPostElement(post); // 需要实现这个函数
+        container.prepend(newPostElement);
+    }</script>
+{% endblock %}
